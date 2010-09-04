@@ -1,0 +1,30 @@
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <title>timetable</title>
+    <script src="jquery/jquery.js" type="text/javascript" charset="utf-8"></script>
+    <script src="jquery/jquery-ui.js" type="text/javascript" charset="utf-8"></script>
+    <script src="array.js" type="text/javascript" charset="utf-8"></script>
+    <script src="mytimetable.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="timetable.css">
+  </head>
+  <body id="timetable" onload="">
+    <script type="text/javascript">
+    $(document).ready(function(){
+      timetable = new Timetable({
+        container: '#timetable',
+        start: 12+'.'+12+'.'+2010,
+        end: 13+'.'+12+'.'+2010,
+        //end_selection_callback:function(){update_timelines()},
+        time_marks:[8,12,18,22],
+        draw_on_start: true
+      })    
+    })
+    
+    </script>
+    
+    <table id="timetable">
+    </table>
+
+  </body>
+</html>

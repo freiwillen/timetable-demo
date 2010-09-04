@@ -1,0 +1,20 @@
+.t_cell{
+  height:16px;
+  width:16px;
+  border:1px solid #cccccc;
+  color:#ff4e18;
+  text-align:center;
+  vertical-align:middle;
+}
+.dining{background-color:#fff8d8;}
+.working{background-color:#fbe360;}
+.closed{background-color:#ffffff;}
+.worktime{
+  padding-left:16px;
+  width:192px;
+  overflow:hidden;
+  font-size:11px;
+}
+.dinnertime{padding-left:16px;width:192px;overflow:hidden;font-size:11px;}
+.dw{font-size:11px;text-align:right;width:20px;padding-right:4px;}
+#timetable th{text-align:center;font-size:11px;font-weight:bold;border-bottom:1px solid #cccccc;}
