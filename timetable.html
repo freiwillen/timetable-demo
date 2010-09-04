@@ -8,13 +8,13 @@
     <script src="mytimetable.js" type="text/javascript" charset="utf-8"></script>
     <link rel="stylesheet" type="text/css" href="timetable.css">
   </head>
-  <body id="timetable" onload="">
+  <body id="" onload="">
     <script type="text/javascript">
     $(document).ready(function(){
       timetable = new Timetable({
         container: '#timetable',
         start: 12+'.'+12+'.'+2010,
-        end: 18+'.'+12+'.'+2010,
+        end: 22+'.'+12+'.'+2010,
         //end_selection_callback:function(){update_timelines()},
         time_marks:[8,12,18,22],
         draw_on_start: true
@@ -23,7 +23,7 @@
     
     </script>
     
-    <table id="timetable">
+    <table id="timetable" style="border-collapse:collapse;">
     </table>
 
   </body>

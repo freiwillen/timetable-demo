@@ -30,14 +30,24 @@ function daysInMonth(iMonth, iYear){
 				this.Day = function(pms){
 				  this.Cell = function(pms){
 					  this.day = pms.day
+					  this.timetable = this.day.timetable
 					  this.state = pms.state
 					  this.position = Number(pms.position)
-					  this.container_id = this.day.timetable.container.attr('id')+'_'+this.day.day+'-'+this.day.month+'-'+this.day.month+'_'+this.position
+					  this.container_id = this.day.timetable.container.attr('id')+'_'+this.day.day+'-'+this.day.month+'-'+this.day.year+'_'+this.position
 					  this.start = (this.position-this.position%2)/2
 					  if(this.position%2 == 1){this.start+=':30'}else{this.start+=':00'}
 					  this.end = (this.position+1-(this.position+1)%2)/2
 					  if((this.position+1)%2 == 1){this.end+=':30'}else{this.end+=':00'}
-					}
+					  
+					  this.build_td = function(){
+					    if(this.timetable.time_marks[this.position/2]){var style="border-right:1px solid black"}else{var style=""}
+					    $('#'+this.container_id).data('day',day)
+					    return '<td class="t_cell '+this.timetable.cell_states[this.state]+'" id="'+this.container_id+'" title="'+this.end+'" alt="'+this.state+'" style="'+style+'"></td>'
+					  }
+					  this.next_state = function(){
+					    
+					  }
+				  }
 					this.create_timeline = function(states){
 					  var day = this
 					  var result = new Array()
@@ -57,6 +67,14 @@ function daysInMonth(iMonth, iYear){
 						this.timeline[cn] = ns
 					}
 					
+					this.build_row = function(){
+					  var row_id = this.timetable.container.attr('id')+'_'+this.day+'-'+this.month+'-'+this.year
+					  var r = '<tr id="'+row_id+'"><td>'+day.day+'.'+day.month+'.'+day.year+'</td>'
+					  r += this.timeline.map(function(cell){
+					    return cell.build_td()
+					  }).join('')
+					  return r+'</tr>'
+					}
 					
 					this.humanize_timeline = function(){
 /********make this universal too***************/
@@ -106,79 +124,64 @@ function daysInMonth(iMonth, iYear){
 					this.days.push(day)
 				}
 				
-				
+				this.find_day = function(date){
+				  var date = date.split('-')
+				  return this.days.find(function(day){
+				    return day.day == Number(date[0]) && Number(day.month)  == Number(date[1])  && Number(day.year)  == Number(date[2])
+				  })
+				}
 				
 	//*************************************************			
 				this.draw = function(){
 					//console.log('draw starts')
-					days = this.days
+					var days = this.days
 					if(this.time_marks){
-						tmr = ''
+						var tmr = ''
 						this.container.html(tmr)
 					}else{
 						this.container.html('')
 					}
-					for(i=1;i<=days.length;i++){
-						day = this.days[i-1]
-						row_id = cell_id = this.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year
-						
-						r = '<tr id="'+row_id+'"><td>'+day.day+'.'+day.month+'.'+day.year+'</td></tr>'
-						this.container.append(r)
-						day.row = $('#'+row_id)
-						
-						for(j=1;j<=48;j++){
-							cell_id = this.container.attr('id')+'_'+days[i-1].day+'-'+days[i-1].month+'-'+days[i-1].year+'_'+j
-							cell_state = day.timeline[j-1]
-							if(this.time_marks[j/2]){style="border-right:1px solid black"}else{style=""}
-							c = '<td class="t_cell '+this.cell_states[cell_state]+'" id="'+cell_id+'" title="'+(j/2+':00').replace('.5:00',':30')+'" alt="'+cell_state+'" style="'+style+'"></td>'
-							day.row.append(c)
-							$('#'+cell_id).data('day',day)
-						}
-					}
+					var timetable = this
+					days.each(function(day){
+					  timetable.container.append(day.build_row())
+					})
 					$('#'+this.container.attr('id')+' .t_cell').click(function(){
-						day = $(this).data('day')
-						timetable = day.timetable
-						
-						if (timetable.hover == 'off') {
-							//console.log(day.sequence_number);
-							timetable.selection_start = {'day':day.sequence_number,cell:$(this).attr('title').replace(':00','').replace(':30','.5')*2}
-							timetable.selection_end = {'day':day.sequence_number,cell:$(this).attr('title').replace(':00','').replace(':30','.5')*2}
+						if (timetable.hover == 'off'){
+						  var day = timetable.find_day($(this).attr('id').split('_')[1])
+							timetable.selection_start = {'day':day.sequence_number,'cell':$(this).attr('id').split('_')[2]}
+							timetable.selection_end = {'day':day.sequence_number,'cell':$(this).attr('id').split('_')[2]}
 							timetable.draw_selection()
 					  	$('.t_cell').hover(function(){
-					  		day = $(this).data('day')
-								//console.log($(this).attr('id'))
-								timetable = day.timetable
-								timetable.selection_end = {'day':day.sequence_number,cell:$(this).attr('title').replace(':00','').replace(':30','.5')*2}
+								var day = timetable.find_day($(this).attr('id').split('_')[1])
+								timetable.selection_end = {'day':day.sequence_number,'cell':$(this).attr('id').split('_')[2]}
 								timetable.draw_selection()
 					  	})
-					  	
 					  	timetable.hover = 'on'
 				  	}else{
 				  		timetable.hover = 'off'
+				  		//console.log(timetable.selection_borders())
 							$('.t_cell').unbind('mouseenter mouseleave')
 							timetable.apply_selection()
-							//timetable.draw()
 							timetable.draw_applied_selection()
 							timetable.end_selection_callback()
 						}
-						//console.log(timetable.hover)
 					})
 				}
-//***************************				***********************************
+//**********************************************************************
 				
 				this.selection_borders = function(){
 					var day1 = this.selection_start.day
 					var cell1 = this.selection_start.cell
 					var day2 = this.selection_end.day
 					var cell2 = this.selection_end.cell
-					if(day2 < day1){
-						day1 = this.selection_end.day
-						day2 = this.selection_start.day
-					}
+          if(day2 < day1){
+            day1 = this.selection_end.day
+            day2 = this.selection_start.day
+          }
 					if(cell2 < cell1){
 						cell1 = this.selection_end.cell
 						cell2 = this.selection_start.cell
-					}
+          }
 					return {d1:day1,c1:cell1,d2:day2,c2:cell2}
 				}
 				
@@ -187,13 +190,14 @@ function daysInMonth(iMonth, iYear){
 			 		var ns = this.get_next_cell_state()
 					var timetable = this
 			 		this.days.each_with_index(function(day,i){
-			 		  day.timeline.each_with_index(function(item,j){
-			 		    cell_id = timetable.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year+'_'+j
-							cell = $('#'+cell_id)
-							if(i+1 >= bs.d1 && i+1 <= bs.d2 && j >= bs.c1 && j <= bs.c2){
-								cell.attr('class','t_cell '+timetable.cell_states[ns])
+			 		  day.timeline.each(function(cell){
+			 		    cell_id = cell.container_id
+							cell_container = $('#'+cell_id)
+							if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2 && cell.position >= bs.c1 && cell.position <= bs.c2){
+								cell_container.attr('class','t_cell '+ns)
+								//console.log(cell_container.attr('id')+' '+timetable.cell_states[ns]+' '+ns)
 							}else{
-								cell.attr('class','t_cell '+timetable.cell_states[item])
+								cell_container.attr('class','t_cell '+timetable.cell_states[cell.state])
 							}
 			 		  })
 			 		})
@@ -205,10 +209,9 @@ function daysInMonth(iMonth, iYear){
 					var ns = this.get_next_cell_state()
 					var timetable = this
 					this.days.each_with_index(function(day,i){
-					  day.timeline.each_with_index(function(item,j){
-					    cell_id = timetable.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year+'_'+(j+1)
-							cell = $('#'+cell_id)
-							cell.attr('class','t_cell '+timetable.cell_states[item])
+					  day.timeline.each_with_index(function(cell,j){
+							container = $('#'+cell.container_id)
+							container.attr('class','t_cell '+timetable.cell_states[cell.state])
 					  })
 					})
 				}
@@ -219,8 +222,9 @@ function daysInMonth(iMonth, iYear){
 					var r = ''
 					if(ns == 'auto'){
 						bs = this.selection_borders()
-						//console.log(bs.d1)
-						cs = Number(this.days[bs.d1-1].timeline[bs.c1-1])
+						
+						cs = Number(this.days[bs.d1-1].timeline[bs.c1-1].state)
+						console.log(this.days[bs.d1-1].timeline[bs.c1-1].state)
 						if(this.cell_states[cs+1]){r = cs+1/*;alert(cs+' '+this.cell_states[cs+1])*/}else{r = 0}
 					}else{
 						r = ns
@@ -231,13 +235,14 @@ function daysInMonth(iMonth, iYear){
 				this.apply_selection = function(){
 					var bs = this.selection_borders()
 					var ns = this.get_next_cell_state()
-					for(var i=bs.d1;i<=bs.d2;i++){
-						day = this.days[i-1]
-						for(var j=bs.c1;j<=bs.c2;j++){
-							day.timeline[j-1]=ns
-						}
-						day.refresh_humanized_timeline()
-					}
+					this.days.each(function(day){
+					  if(bs.d1 >= day.sequence_number && bs.d2 <= day.sequence_number){
+					    day.timeline.each(function(cell){
+					      if(bs.c1 >= cell.position && bs.c2 <= cell.position)cell.state = ns
+					    })
+					    day.refresh_humanized_timeline()
+					  }
+					})
 				}
 				
 				this.dateline = function(){
