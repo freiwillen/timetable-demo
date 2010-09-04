@@ -28,18 +28,35 @@ function daysInMonth(iMonth, iYear){
 				this.end_selection_callback = pms.end_selection_callback || function(){}
 				
 				this.Day = function(pms){
+				  this.Cell = function(pms){
+					  this.day = pms.day
+					  this.state = pms.state
+					  this.position = Number(pms.position)
+					  this.container_id = this.day.timetable.container.attr('id')+'_'+this.day.day+'-'+this.day.month+'-'+this.day.month+'_'+this.position
+					  this.start = (this.position-this.position%2)/2
+					  if(this.position%2 == 1){this.start+=':30'}else{this.start+=':00'}
+					  this.end = (this.position+1-(this.position+1)%2)/2
+					  if((this.position+1)%2 == 1){this.end+=':30'}else{this.end+=':00'}
+					}
+					this.create_timeline = function(states){
+					  var day = this
+					  var result = new Array()
+					  states.each_with_index(function(state,i){
+					    result.push(new day.Cell({'day':day, 'state':state, 'position':i}))
+					  })
+					  return result
+					}
 					this.timetable = pms.timetable
 					this.sequence_number = pms.sequence_number
 					this.day = pms.day
 					this.month = pms.month
 					this.year = pms.year
-					this.timeline = pms.timeline
+					this.timeline = this.create_timeline(pms.timeline)
 					this.row = ''
-					//this.humanized_timeline = pms.humanized_timeline || this.humanize_timeline()
-					
 					this.change_cell_state = function(cn,ns){
 						this.timeline[cn] = ns
 					}
+					
 					
 					this.humanize_timeline = function(){
 /********make this universal too***************/
@@ -74,7 +91,7 @@ function daysInMonth(iMonth, iYear){
 						this.humanized_timeline =  this.humanize_timeline()
 					}
 					
-					this.humanized_timeline = pms.humanized_timeline || this.humanize_timeline()
+					//this.humanized_timeline = pms.humanized_timeline || this.humanize_timeline()
 				}
 				
 				this.add_day = function(pms){
@@ -97,22 +114,10 @@ function daysInMonth(iMonth, iYear){
 					days = this.days
 					if(this.time_marks){
 						tmr = ''
-						/*tmr = '<tr><td></td><td colspan="48">'
-							tl = 8*48
-							
-							for(j=0;j<=this.time_marks.length;j++){	
-								if(this.time_marks[j] == i/2)t = i/2
-								p
-								tmr += '<span>'+t+'</span>'
-							}
-							
-
-						tmr +='</td></tr>'*/
 						this.container.html(tmr)
 					}else{
 						this.container.html('')
 					}
-					//console.log('days.length: '+days.length)
 					for(i=1;i<=days.length;i++){
 						day = this.days[i-1]
 						row_id = cell_id = this.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year
@@ -130,7 +135,6 @@ function daysInMonth(iMonth, iYear){
 							$('#'+cell_id).data('day',day)
 						}
 					}
-					//$('#'+this.container.attr('id')+' .t_cell').click(function(){
 					$('#'+this.container.attr('id')+' .t_cell').click(function(){
 						day = $(this).data('day')
 						timetable = day.timetable
@@ -181,43 +185,32 @@ function daysInMonth(iMonth, iYear){
 				this.draw_selection = function(){
 					var bs = this.selection_borders()
 			 		var ns = this.get_next_cell_state()
-					//console.log(bs.d1+'.'+bs.c1+'-'+bs.d2+'.'+bs.c2)
-					for(var i=1;i<=this.days.length;i++){
-						
-						var day = this.days[i-1]
-						for(var j=1;j<=day.timeline.length;j++){
-							cell_id = this.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year+'_'+j
-							
+					var timetable = this
+			 		this.days.each_with_index(function(day,i){
+			 		  day.timeline.each_with_index(function(item,j){
+			 		    cell_id = timetable.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year+'_'+j
 							cell = $('#'+cell_id)
-							
-							if(i >= bs.d1 && i <= bs.d2 && j >= bs.c1 && j <= bs.c2){
-								cell.attr('class','t_cell '+this.cell_states[ns])
+							if(i+1 >= bs.d1 && i+1 <= bs.d2 && j >= bs.c1 && j <= bs.c2){
+								cell.attr('class','t_cell '+timetable.cell_states[ns])
 							}else{
-								cell.attr('class','t_cell '+this.cell_states[day.timeline[j-1]])
+								cell.attr('class','t_cell '+timetable.cell_states[item])
 							}
-						}
-					}
-					//alert(d1+' '+c1+' '+d2+' '+c2)
+			 		  })
+			 		})
 				}
 				
 				
 				this.draw_applied_selection = function(){
 					var bs = this.selection_borders()
 					var ns = this.get_next_cell_state()
-					//alert(ns)
-					for(var i=1;i<=this.days.length;i++){
-						
-						day = this.days[i-1]
-						for(var j=1;j<=day.timeline.length;j++){
-							cell_id = this.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year+'_'+j
-							
+					var timetable = this
+					this.days.each_with_index(function(day,i){
+					  day.timeline.each_with_index(function(item,j){
+					    cell_id = timetable.container.attr('id')+'_'+day.day+'-'+day.month+'-'+day.year+'_'+(j+1)
 							cell = $('#'+cell_id)
-
-								cell.attr('class','t_cell '+this.cell_states[day.timeline[j-1]])
-							//console.log(cell_id)
-						}
-					}
-					//alert(d1+' '+c1+' '+d2+' '+c2)
+							cell.attr('class','t_cell '+timetable.cell_states[item])
+					  })
+					})
 				}
 				
 				this.get_next_cell_state = function(){
