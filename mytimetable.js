@@ -44,9 +44,19 @@ function daysInMonth(iMonth, iYear){
 					    $('#'+this.container_id).data('day',day)
 					    return '<td class="t_cell '+this.timetable.cell_states[this.state]+'" id="'+this.container_id+'" title="'+this.end+'" alt="'+this.state+'" style="'+style+'"></td>'
 					  }
+					  
 					  this.next_state = function(){
-					    
-					  }
+    					var ns = this.timetable.next_cell_state
+    					var r = ''
+    					if(ns == 'auto'){
+    						var cs = this.state
+    						ns = Number(cs) + 1
+    						if(this.timetable.cell_states[ns]){r = ns}else{r = 0}
+    					}else{
+    						r = ns
+    					}
+    					return r
+    				}
 				  }
 					this.create_timeline = function(states){
 					  var day = this
@@ -159,7 +169,6 @@ function daysInMonth(iMonth, iYear){
 					  	timetable.hover = 'on'
 				  	}else{
 				  		timetable.hover = 'off'
-				  		//console.log(timetable.selection_borders())
 							$('.t_cell').unbind('mouseenter mouseleave')
 							timetable.apply_selection()
 							timetable.draw_applied_selection()
@@ -187,26 +196,23 @@ function daysInMonth(iMonth, iYear){
 				
 				this.draw_selection = function(){
 					var bs = this.selection_borders()
-			 		var ns = this.get_next_cell_state()
 					var timetable = this
 			 		this.days.each_with_index(function(day,i){
 			 		  day.timeline.each(function(cell){
-			 		    cell_id = cell.container_id
-							cell_container = $('#'+cell_id)
+			 		    var cell_id = cell.container_id
+							var cell_container = $('#'+cell_id)
 							if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2 && cell.position >= bs.c1 && cell.position <= bs.c2){
-								cell_container.attr('class','t_cell '+ns)
-								//console.log(cell_container.attr('id')+' '+timetable.cell_states[ns]+' '+ns)
+								var state = cell.next_state()
 							}else{
-								cell_container.attr('class','t_cell '+timetable.cell_states[cell.state])
+								var state = cell.state
 							}
+							cell_container.attr('class','t_cell '+timetable.cell_states[state])
 			 		  })
 			 		})
 				}
 				
 				
 				this.draw_applied_selection = function(){
-					var bs = this.selection_borders()
-					var ns = this.get_next_cell_state()
 					var timetable = this
 					this.days.each_with_index(function(day,i){
 					  day.timeline.each_with_index(function(cell,j){
@@ -215,30 +221,15 @@ function daysInMonth(iMonth, iYear){
 					  })
 					})
 				}
-				
-				this.get_next_cell_state = function(){
-					var bs = this.selection_borders()
-					var ns = this.next_cell_state
-					var r = ''
-					if(ns == 'auto'){
-						bs = this.selection_borders()
-						
-						cs = Number(this.days[bs.d1-1].timeline[bs.c1-1].state)
-						console.log(this.days[bs.d1-1].timeline[bs.c1-1].state)
-						if(this.cell_states[cs+1]){r = cs+1/*;alert(cs+' '+this.cell_states[cs+1])*/}else{r = 0}
-					}else{
-						r = ns
-					}
-					return r
-				}
-				
+							
 				this.apply_selection = function(){
 					var bs = this.selection_borders()
-					var ns = this.get_next_cell_state()
 					this.days.each(function(day){
-					  if(bs.d1 >= day.sequence_number && bs.d2 <= day.sequence_number){
+					  if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2){
 					    day.timeline.each(function(cell){
-					      if(bs.c1 >= cell.position && bs.c2 <= cell.position)cell.state = ns
+					      if(cell.position >= bs.c1 && cell.position <= bs.c2){
+					        cell.state = cell.next_state()
+					      }
 					    })
 					    day.refresh_humanized_timeline()
 					  }
