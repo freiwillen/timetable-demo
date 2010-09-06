@@ -16,6 +16,7 @@
   font-size:11px;
 }
 .dinnertime{padding-left:16px;width:192px;overflow:hidden;font-size:11px;}
+.row_date{width:160px}
 .dw{font-size:11px;text-align:right;width:20px;padding-right:4px;}
 
 #timetable th{text-align:center;font-size:11px;font-weight:bold;border-bottom:1px solid #cccccc;}

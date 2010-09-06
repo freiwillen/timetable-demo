@@ -58,6 +58,9 @@ function daysInMonth(iMonth, iYear){
     					return r
     				}
 				  }
+				  
+				  
+				  
 					this.create_timeline = function(states){
 					  var day = this
 					  var result = new Array()
@@ -76,10 +79,24 @@ function daysInMonth(iMonth, iYear){
 					this.change_cell_state = function(cn,ns){
 						this.timeline[cn] = ns
 					}
+					this.monday = function(){
+				    var d = new Date(this.year,this.month-1,this.day)
+				    return (d.getDay() == 1)
+				  }
+				  this.day_name = function(){
+				    var d = new Date(this.year,this.month-1,this.day)
+				    var day_names = ['Неділя','Понеділок','Вівторок','Середа','Четвер','П’ятниця','Субота']
+				    return day_names[d.getDay()]
+				  }
 					
 					this.build_row = function(){
 					  var row_id = this.timetable.container.attr('id')+'_'+this.day+'-'+this.month+'-'+this.year
-					  var r = '<tr id="'+row_id+'"><td>'+day.day+'.'+day.month+'.'+day.year+'</td>'
+					  var r = '';
+					  if(this.monday()){
+					    r+= '<tr><td colspan="'+(this.timeline.length+1)+'"></td></tr>'
+					  }
+					  r += '<tr id="'+row_id+'"><td class="row_date">'+day.day+'.'+day.month+'.'+day.year+', '+this.day_name()+'</td>'
+					  
 					  r += this.timeline.map(function(cell){
 					    return cell.build_td()
 					  }).join('')
