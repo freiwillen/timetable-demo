@@ -13,6 +13,8 @@ function daysInMonth(iMonth, iYear){
 				this.selection_end = {day:'',cell:''}
 				this.next_cell_state = 'auto'
 				this.draw_on_start = pms.draw_on_start && true
+				this.clone_day = function(){return $('#clone').attr('checked')}
+				this.clone_etalone = ''
 				
 				
 				this.time_marks = {}
@@ -76,9 +78,17 @@ function daysInMonth(iMonth, iYear){
 					this.year = pms.year
 					this.timeline = this.create_timeline(pms.timeline)
 					this.row = ''
+					
 					this.change_cell_state = function(cn,ns){
 						this.timeline[cn] = ns
 					}
+					
+					this.clone_day = function(day){
+					  this.timeline.each(function(cell){
+					    day.timeline[cell.position].state = cell.state
+					  })
+					}
+					
 					this.monday = function(){
 				    var d = new Date(this.year,this.month-1,this.day)
 				    return (d.getDay() == 1)
@@ -96,7 +106,6 @@ function daysInMonth(iMonth, iYear){
 					    r+= '<tr><td colspan="'+(this.timeline.length+1)+'"></td></tr>'
 					  }
 					  r += '<tr id="'+row_id+'"><td class="row_date">'+day.day+'.'+day.month+'.'+day.year+', '+this.day_name()+'</td>'
-					  
 					  r += this.timeline.map(function(cell){
 					    return cell.build_td()
 					  }).join('')
@@ -171,24 +180,43 @@ function daysInMonth(iMonth, iYear){
 					var timetable = this
 					days.each(function(day){
 					  timetable.container.append(day.build_row())
-					})
+					  day.timeline.each(function(cell){cell.container = $('#'+cell.container_id)})
+				  })
+					/*days.each(function(day){
+					  day.timeline.each(function(cell){cell.container = $('#'+cell.container_id)})
+					})*/
 					$('#'+this.container.attr('id')+' .t_cell').click(function(){
 						if (timetable.hover == 'off'){
 						  var day = timetable.find_day($(this).attr('id').split('_')[1])
+						  //var day = this.day
 							timetable.selection_start = {'day':day.sequence_number,'cell':$(this).attr('id').split('_')[2]}
 							timetable.selection_end = {'day':day.sequence_number,'cell':$(this).attr('id').split('_')[2]}
-							timetable.draw_selection()
+							if(timetable.clone_day() == false){
+							  timetable.draw_selection()
+							}else if(timetable.clone_day() == true){
+							  timetable.clone_etalone = day
+							  timetable.draw_clones()
+							}
+							
 					  	$('.t_cell').hover(function(){
 								var day = timetable.find_day($(this).attr('id').split('_')[1])
 								timetable.selection_end = {'day':day.sequence_number,'cell':$(this).attr('id').split('_')[2]}
-								timetable.draw_selection()
+								if(timetable.clone_day() == false){
+							    timetable.draw_selection()
+  							}else if(timetable.clone_day() == true){
+  							  timetable.draw_clones()
+  							}
 					  	})
 					  	timetable.hover = 'on'
 				  	}else{
 				  		timetable.hover = 'off'
 							$('.t_cell').unbind('mouseenter mouseleave')
-							timetable.apply_selection()
-							timetable.draw_applied_selection()
+							if(timetable.clone_day() == false){
+							  timetable.apply_selection()
+							}else if(timetable.clone_day() == true){
+							  timetable.apply_clones()
+							}
+							timetable.draw_changes()
 							timetable.end_selection_callback()
 						}
 					})
@@ -216,25 +244,33 @@ function daysInMonth(iMonth, iYear){
 					var timetable = this
 			 		this.days.each_with_index(function(day,i){
 			 		  day.timeline.each(function(cell){
-			 		    var cell_id = cell.container_id
-							var cell_container = $('#'+cell_id)
 							if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2 && cell.position >= bs.c1 && cell.position <= bs.c2){
-								var state = cell.next_state()
-							}else{
-								var state = cell.state
-							}
-							cell_container.attr('class','t_cell '+timetable.cell_states[state])
+								var state = cell.next_state()}else{var state = cell.state}
+							cell.container.attr('class','t_cell '+timetable.cell_states[state])
+			 		  })
+			 		})
+				}
+				
+				this.draw_clones = function(){
+				  var bs = this.selection_borders()
+					var timetable = this
+					var etalone = timetable.clone_etalone.timeline
+					this.days.each_with_index(function(day,i){
+			 		  day.timeline.each(function(cell){
+							if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2){
+								var state = etalone[cell.position].state}else{var state = cell.state}
+								//console.log(state)
+							cell.container.attr('class','t_cell '+timetable.cell_states[state])
 			 		  })
 			 		})
 				}
 				
 				
-				this.draw_applied_selection = function(){
+				this.draw_changes  = function(){
 					var timetable = this
 					this.days.each_with_index(function(day,i){
 					  day.timeline.each_with_index(function(cell,j){
-							container = $('#'+cell.container_id)
-							container.attr('class','t_cell '+timetable.cell_states[cell.state])
+							cell.container.attr('class','t_cell '+timetable.cell_states[cell.state])
 					  })
 					})
 				}
@@ -253,6 +289,18 @@ function daysInMonth(iMonth, iYear){
 					})
 				}
 				
+				this.apply_clones = function(){
+				  var bs = this.selection_borders()
+					var timetable = this
+					var etalone = timetable.clone_etalone.timeline
+					this.days.each_with_index(function(day,i){
+					  if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2){
+  			 		  day.timeline.each(function(cell){
+  							cell.state = etalone[cell.position].state
+  			 		  })
+			 		 }
+			 		})
+				}
 				this.dateline = function(){
 					var start = this.start
 					var end = this.end
@@ -318,13 +366,9 @@ function daysInMonth(iMonth, iYear){
 				
 				this.add_days = function(){
 					var dtln = this.dateline()
-					//alert(dtln)
-					//console.log(dtln)
-					//console.log('add_days starts')
 					for(var year in dtln){
 						for(var month in dtln[year]){
 							for(var i=0;i<dtln[year][month].length;i++){
-								//console.log(year+' '+month+' '+dtln[year][month][i])
 								this.add_day({'year':year,'month':month,'day':dtln[year][month][i]})
 							}
 						}
@@ -334,7 +378,6 @@ function daysInMonth(iMonth, iYear){
 				this.replace_day = function(day){
 					var days = this.days
 					for(var i=0;i<days.length;i++){
-						//console.log(days[i].day+' == '+day.day+' && '+days[i].month+' == '+day.month+' && '+days[i].year+' == '+day.year)
 						if(days[i].day == day.day && days[i].month == day.month && days[i].year == day.year){
 							day.sequence_number = i+1
 							days[i] = day
