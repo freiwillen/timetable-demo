@@ -7,11 +7,11 @@ function daysInMonth(iMonth, iYear){
 				this.days = []
 				this.start = pms.start
 				this.end = pms.end
-				this.cell_states = {0:'closed',1:'working'}
+				this.cell_states = pms.cell_states || {0:'closed',1:'working'}
 				this.hover = 'off'
 				this.selection_start = {day:'',cell:''}
 				this.selection_end = {day:'',cell:''}
-				this.next_cell_state = 'auto'
+				this.next_cell_state = function(){return $('.cells_state input:checked').attr('value')}//'auto'
 				this.draw_on_start = pms.draw_on_start && true
 				this.clone_day = function(){return $('#clone').attr('checked')}
 				this.clone_etalone = ''
@@ -20,14 +20,45 @@ function daysInMonth(iMonth, iYear){
 				this.time_marks = {}
 				
 				if(pms.time_marks){
-					for(j=0;j<=pms.time_marks.length;j++){
+					for(var j=0;j<=pms.time_marks.length;j++){
 						this.time_marks[pms.time_marks[j]] = true
 					}
 				}else{
 					this.time_marks = false	
 				}
 				
+				this.time_mark_colspans = []
+				
+				for(var i=0;i<pms.time_marks.length;i++){
+				  var mark = pms.time_marks[i]
+				  if(i==0){
+				    var last_mark = 0
+				  }else{
+				    var last_mark = pms.time_marks[i-1]
+				  }
+				  this.time_mark_colspans.push([mark,mark - last_mark]) 
+				}
+				this.time_mark_colspans.push(['',47 - mark - last_mark])
+				
 				this.end_selection_callback = pms.end_selection_callback || function(){}
+				
+				this.add_controls = function(){
+				  r = '<tr>'
+				  
+				  r += '<td><input type="checkbox" id="clone"></td>'
+				  
+				  r += '<td  class="cells_state" colspan="48">'
+				  var states = this.cell_states
+				  for(var key in states){
+				    r += '<input type="radio" id="cell_state'+key+'" name="cells_state" value="'+key+'"><label for="cell_state'+key+'">'+states[key]+'</label></br>'  
+				  }
+				  
+				  r += '<input type="radio" id="cell_stateauto" name="cells_state" value="auto" checked="checked"><label for="cell_stateauto">auto</label></br>'
+				  r += '</td>'
+				  
+				  r += '</tr>'
+				 this.container.append(r) 
+				}
 				
 				this.Day = function(pms){
 				  this.Cell = function(pms){
@@ -42,13 +73,13 @@ function daysInMonth(iMonth, iYear){
 					  if((this.position+1)%2 == 1){this.end+=':30'}else{this.end+=':00'}
 					  
 					  this.build_td = function(){
-					    if(this.timetable.time_marks[this.position/2]){var style="border-right:1px solid black"}else{var style=""}
+					    if(this.timetable.time_marks[(this.position+1)/2]){var style="border-right:1px solid black"}else{var style=""}
 					    $('#'+this.container_id).data('day',day)
 					    return '<td class="t_cell '+this.timetable.cell_states[this.state]+'" id="'+this.container_id+'" title="'+this.end+'" alt="'+this.state+'" style="'+style+'"></td>'
 					  }
 					  
 					  this.next_state = function(){
-    					var ns = this.timetable.next_cell_state
+    					var ns = this.timetable.next_cell_state()
     					var r = ''
     					if(ns == 'auto'){
     						var cs = this.state
@@ -103,7 +134,13 @@ function daysInMonth(iMonth, iYear){
 					  var row_id = this.timetable.container.attr('id')+'_'+this.day+'-'+this.month+'-'+this.year
 					  var r = '';
 					  if(this.monday()){
-					    r+= '<tr><td colspan="'+(this.timeline.length+1)+'"></td></tr>'
+					    var marks = this.timetable.time_mark_colspans
+					    r+= '<tr><td></td>'
+					    for(var i=0;i<marks.length;i++){
+                r+= '<td colspan="'+marks[i][1]*2+'" align="right">'+marks[i][0]+'</td>'
+					    }
+					    //r+= '<tr><td colspan="'+(this.timeline.length+1)+'"></td></tr>'
+					    r+= '</tr>'
 					  }
 					  r += '<tr id="'+row_id+'"><td class="row_date">'+day.day+'.'+day.month+'.'+day.year+', '+this.day_name()+'</td>'
 					  r += this.timeline.map(function(cell){
@@ -178,6 +215,7 @@ function daysInMonth(iMonth, iYear){
 						this.container.html('')
 					}
 					var timetable = this
+					this.add_controls()
 					days.each(function(day){
 					  timetable.container.append(day.build_row())
 					  day.timeline.each(function(cell){cell.container = $('#'+cell.container_id)})
