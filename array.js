@@ -19,3 +19,18 @@ Array.prototype.find = function(block){
   }
   return r
 }
+Array.prototype.my_reverse = function(){
+  var r = new Array();
+  for(var i=this.length-1;i>=0;i--){
+    r.push(this[i])
+  }
+  return r
+}
+Array.prototype.index = function(el){
+  for(var i=0;i<this.length;i++){
+    if(this[i] == el)return i
+  }
+}
+Array.prototype.rindex = function(el){
+  return this.my_reverse().index(el)
+}

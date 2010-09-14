@@ -52,10 +52,8 @@ function daysInMonth(iMonth, iYear){
 				  for(var key in states){
 				    r += '<input type="radio" id="cell_state'+key+'" name="cells_state" value="'+key+'"><label for="cell_state'+key+'">'+states[key]+'</label></br>'  
 				  }
-				  
 				  r += '<input type="radio" id="cell_stateauto" name="cells_state" value="auto" checked="checked"><label for="cell_stateauto">auto</label></br>'
 				  r += '</td>'
-				  
 				  r += '</tr>'
 				 this.container.append(r) 
 				}
@@ -75,7 +73,7 @@ function daysInMonth(iMonth, iYear){
 					  this.build_td = function(){
 					    if(this.timetable.time_marks[(this.position+1)/2]){var style="border-right:1px solid black"}else{var style=""}
 					    $('#'+this.container_id).data('day',day)
-					    return '<td class="t_cell '+this.timetable.cell_states[this.state]+'" id="'+this.container_id+'" title="'+this.end+'" alt="'+this.state+'" style="'+style+'"></td>'
+					    return '<td class="t_cell '+this.timetable.cell_states[this.state]+'" id="'+this.container_id+'" title="'+this.start+'…'+this.end+'" alt="'+this.state+'" style="'+style+'"></td>'
 					  }
 					  
 					  this.next_state = function(){
@@ -152,7 +150,24 @@ function daysInMonth(iMonth, iYear){
 					this.humanize_timeline = function(){
 /********make this universal too***************/
 						var humanized = ''
-						for(var j=1;j<=48;j++){
+						var timetable = this.timetable
+						var timeline = this.timeline.map(function(cell){
+						  return cell.state
+						})
+						var states = {}
+						var r = []
+            for(var key in timetable.cell_states){
+              states[key] = []
+  						timeline.each_with_index(function(cell_state,index){
+  						  if(Number(cell_state) >= Number(key))states[key].push(index)
+              })
+              if(states[key].length > 1){
+						    r.push(timetable.cell_states[key]+': '+this.timeline[states[key][0]].start+'…'+this.timeline[states[key][states[key].length-1]].end)
+						  }else if(states[key].length == 1){
+						    r.push(timetable.cell_states[key]+': '+this.timeline[states[key][0]].start)
+						  }
+            }
+						/*for(var j=1;j<=48;j++){
 							
 							if(j-2 >= 0){p = this.timeline[j-2]}else{p = 4}
 							if(j-1 >= 0){c = this.timeline[j-1]}else{c = 3}
@@ -174,8 +189,9 @@ function daysInMonth(iMonth, iYear){
 							}else if(p == 1 && c == 1 && n == 0){
 								humanized += re+', '
 							}
-						}
-					return humanized.replace(/(, )$/,'')
+						}*/
+					//return humanized.replace(/(, )$/,'')
+					return r.join(', ')
 					}
 					
 					this.refresh_humanized_timeline = function(){
