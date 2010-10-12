@@ -34,3 +34,11 @@ Array.prototype.index = function(el){
 Array.prototype.rindex = function(el){
   return this.my_reverse().index(el)
 }
+
+Array.prototype.first = function(){
+  return this[0]
+}
+
+Array.prototype.last = function(){
+  return this[this.length-1]
+}

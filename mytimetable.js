@@ -159,38 +159,26 @@ function daysInMonth(iMonth, iYear){
             for(var key in timetable.cell_states){
               states[key] = []
   						timeline.each_with_index(function(cell_state,index){
-  						  if(Number(cell_state) >= Number(key))states[key].push(index)
+  						  if(Number(cell_state) == Number(key) && (states[key].length == 0 || timeline[index-1] != key)){
+  						    states[key].push([index])
+  						    //console.log(cell_state+' '+ key)
+  						  }else if(Number(cell_state) == Number(key)){
+  						    states[key][states[key].length-1].push(index)
+  						  }
               })
-              if(states[key].length > 1){
-						    r.push(timetable.cell_states[key]+': '+this.timeline[states[key][0]].start+'…'+this.timeline[states[key][states[key].length-1]].end)
-						  }else if(states[key].length == 1){
-						    r.push(timetable.cell_states[key]+': '+this.timeline[states[key][0]].start)
-						  }
+              var sr = []
+              var cells = this
+              states[key].each(function(state){
+                //console.log(state)
+                if(state.length > 1){
+  						    sr.push(cells.timeline[state.first()].start+'…'+cells.timeline[state.last()].end)
+  						  }else if(states[key].length == 1){
+  						    sr.push(cells.timeline[state.first()].start)
+  						  }
+              })
+              r.push(timetable.cell_states[key]+': '+sr.join(', '))
             }
-						/*for(var j=1;j<=48;j++){
-							
-							if(j-2 >= 0){p = this.timeline[j-2]}else{p = 4}
-							if(j-1 >= 0){c = this.timeline[j-1]}else{c = 3}
-							//if(j < 48){n = $('#cell'+(j+1)+'_'+line).attr('alt')}else{n = 2}
-							if(j < 48){n = this.timeline[j]}else{n = 0}
-							
-							
-							tj = j-1
-							tje = j
-							rs = (tj-tj%2)/2
-							re = (tje-tje%2)/2
-							
-							if(tj%2 == 0){rs+=':00'}else{rs+=':30'}
-							if(tje%2 == 0){re+=':00'}else{re+=':30'}
-							if((p == 0 || p == 4) && c == 1 && (n == 0 || n == 2)){
-								humanized += rs+', '
-							}else if((p == 0 || p == 4) && c == 1 && n == 1){
-								humanized += rs+'-'
-							}else if(p == 1 && c == 1 && n == 0){
-								humanized += re+', '
-							}
-						}*/
-					//return humanized.replace(/(, )$/,'')
+					console.log(r.join(', '))
 					return r.join(', ')
 					}
 					
