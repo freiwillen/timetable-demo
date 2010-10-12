@@ -44,7 +44,7 @@ function Timetable(pms){
   
   this.add_controls = function(){
     r = '<tr>'
-    r += '<td><input type="checkbox" id="clone"></td>'
+    r += '<td><input type="checkbox" id="clone"> clone row </td>'
     r += '<td  class="cells_state" colspan="48">'
     var states = this.cell_states
     for(var key in states){
