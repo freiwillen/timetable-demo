@@ -1,6 +1,9 @@
+table{
+  font-size:11px;
+}
 .t_cell{
-  height:16px;
-  width:16px;
+  height:11px;
+  width:8px;
   border:1px solid #cccccc;
   color:#ff4e18;
   text-align:center;
@@ -13,10 +16,9 @@
   padding-left:16px;
   width:192px;
   overflow:hidden;
-  font-size:11px;
 }
-.dinnertime{padding-left:16px;width:192px;overflow:hidden;font-size:11px;}
-.row_date{width:160px}
-.dw{font-size:11px;text-align:right;width:20px;padding-right:4px;}
-
-#timetable th{text-align:center;font-size:11px;font-weight:bold;border-bottom:1px solid #cccccc;}
+.dinnertime{padding-left:16px;width:192px;overflow:hidden;}
+.row_date{width:115px;}
+.dw{text-align:right;width:20px;padding-right:4px;}
+/*.humanized_timeline{font-size:10px;}*/
+#timetable th{text-align:center;font-weight:bold;border-bottom:1px solid #cccccc;}

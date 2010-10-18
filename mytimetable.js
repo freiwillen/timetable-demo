@@ -14,15 +14,13 @@ function Timetable(pms){
   this.next_cell_state = function(){return $('.cells_state input:checked').attr('value')}//'auto'
   this.draw_on_start = pms.draw_on_start && true
   this.clone_day = function(){return $('#clone').attr('checked')}
+  this.show_humanized_timelines = pms.show_humanized_timelines || false
   this.clone_etalone = ''
-  
-  
   this.time_marks = {}
   
   if(pms.time_marks){
-    for(var j=0;j<=pms.time_marks.length;j++){
+    for(var j=0;j<=pms.time_marks.length;j++)
       this.time_marks[pms.time_marks[j]] = true
-    }
   }else{
     this.time_marks = false  
   }
@@ -48,9 +46,9 @@ function Timetable(pms){
     r += '<td  class="cells_state" colspan="48">'
     var states = this.cell_states
     for(var key in states){
-      r += '<input type="radio" id="cell_state'+key+'" name="cells_state" value="'+key+'"><label for="cell_state'+key+'">'+states[key]+'</label></br>'  
+      r += '<input type="radio" id="cell_state'+key+'" name="cells_state" value="'+key+'"><label for="cell_state'+key+'">'+states[key]+'</label>&nbsp;&nbsp;'  
     }
-    r += '<input type="radio" id="cell_stateauto" name="cells_state" value="auto" checked="checked"><label for="cell_stateauto">auto</label></br>'
+    r += '<input type="radio" id="cell_stateauto" name="cells_state" value="auto" checked="checked"><label for="cell_stateauto">auto</label>&nbsp;&nbsp;'
     r += '</td>'
     r += '</tr>'
    this.container.append(r) 
@@ -89,8 +87,6 @@ function Timetable(pms){
       }
     }
     
-    
-    
     this.create_timeline = function(states){
       var day = this
       var result = new Array()
@@ -106,6 +102,7 @@ function Timetable(pms){
     this.year = pms.year
     this.timeline = this.create_timeline(pms.timeline)
     this.row = ''
+    this.row_id = ''
     
     this.change_cell_state = function(cn,ns){
       this.timeline[cn] = ns
@@ -121,6 +118,7 @@ function Timetable(pms){
       var d = new Date(this.year,this.month-1,this.day)
       return (d.getDay() == 1)
     }
+    
     this.day_name = function(){
       var d = new Date(this.year,this.month-1,this.day)
       var day_names = ['Неділя','Понеділок','Вівторок','Середа','Четвер','П’ятниця','Субота']
@@ -129,6 +127,7 @@ function Timetable(pms){
     
     this.build_row = function(){
       var row_id = this.timetable.container.attr('id')+'_'+this.day+'-'+this.month+'-'+this.year
+      this.row_id = row_id
       var r = '';
       if(this.monday()){
         var marks = this.timetable.time_mark_colspans
@@ -136,13 +135,13 @@ function Timetable(pms){
         for(var i=0;i<marks.length;i++){
           r+= '<td colspan="'+marks[i][1]*2+'" align="right">'+marks[i][0]+'</td>'
         }
-        r+= '</tr>'
+        r+= '<td></td></tr>'
       }
       r += '<tr id="'+row_id+'"><td class="row_date">'+day.day+'.'+day.month+'.'+day.year+', '+this.day_name()+'</td>'
       r += this.timeline.map(function(cell){
         return cell.build_td()
       }).join('')
-      return r+'</tr>'
+      return r+'<td id="'+row_id+'_humanized'+'" class="humanized_timeline"></td></tr>'
     }
     
     this.humanize_timeline = function(){
@@ -177,8 +176,10 @@ function Timetable(pms){
     console.log(r.join(', '))
     return r.join(', ')
     }
+    
     this.refresh_humanized_timeline = function(){
-      this.humanized_timeline =  this.humanize_timeline()
+      this.humanized_timeline = this.humanize_timeline()
+      $('#'+this.row_id+'_humanized').html(this.humanized_timeline)
     }
   }
   
@@ -200,10 +201,8 @@ function Timetable(pms){
       return day.day == Number(date[0]) && Number(day.month)  == Number(date[1])  && Number(day.year)  == Number(date[2])
     })
   }
-  
-//*************************************************      
+     
   this.draw = function(){
-    //console.log('draw starts')
     var days = this.days
     if(this.time_marks){
       var tmr = ''
@@ -217,9 +216,6 @@ function Timetable(pms){
       timetable.container.append(day.build_row())
       day.timeline.each(function(cell){cell.container = $('#'+cell.container_id)})
     })
-    /*days.each(function(day){
-      day.timeline.each(function(cell){cell.container = $('#'+cell.container_id)})
-    })*/
     $('#'+this.container.attr('id')+' .t_cell').click(function(){
       if (timetable.hover == 'off'){
         var day = timetable.find_day($(this).attr('id').split('_')[1])
@@ -256,7 +252,7 @@ function Timetable(pms){
       }
     })
   }
-//**********************************************************************
+
   
   this.selection_borders = function(){
     var day1 = this.selection_start.day
@@ -336,6 +332,7 @@ function Timetable(pms){
       }
      })
   }
+  
   this.dateline = function(){
     var start = this.start
     var end = this.end
@@ -392,7 +389,6 @@ function Timetable(pms){
     
     return years
   }
-  
   
   this.parse_date = function(date){
     date = date.split('.')
