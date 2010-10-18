@@ -184,7 +184,7 @@ function Timetable(pms){
         var r = []
         var tl = this.humanized_timeline
         for(var key in tl){
-          if(tl[key].any){
+          if(tl[key].any()){
             r.push(key+': '+ tl[key].join(', '))
           }
         }

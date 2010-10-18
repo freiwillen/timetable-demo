@@ -43,5 +43,5 @@ Array.prototype.last = function(){
   return this[this.length-1]
 }
 Array.prototype.any = function(){
-  return this.length > 0
+  return (this.length > 0)
 }
