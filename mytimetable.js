@@ -151,7 +151,7 @@ function Timetable(pms){
         return cell.state
       })
       var states = {}
-      var r = []
+      var r = {}
       for(var key in timetable.cell_states){
         states[key] = []
         timeline.each_with_index(function(cell_state,index){
@@ -171,15 +171,25 @@ function Timetable(pms){
             sr.push(cells.timeline[state.first()].start)
           }
         })
-        r.push(timetable.cell_states[key]+': '+sr.join(', '))
+        r[timetable.cell_states[key]] = sr//.join(', ')
       }
-    console.log(r.join(', '))
-    return r.join(', ')
+    //console.log(r.join(', '))
+    return r//.join(', ')
     }
     
     this.refresh_humanized_timeline = function(){
       this.humanized_timeline = this.humanize_timeline()
-      $('#'+this.row_id+'_humanized').html(this.humanized_timeline)
+      if(this.timetable.show_humanized_timelines){
+        var r = []
+        var tl = this.humanized_timeline
+        for(var key in tl){
+          if(tl[key].any){
+            r.push(key+': '+ tl[key].join(', '))
+          }
+        }
+      
+        $('#'+this.row_id+'_humanized').html(r.join('; '))  
+      }
     }
   }
   
@@ -243,9 +253,9 @@ function Timetable(pms){
         timetable.hover = 'off'
         $('.t_cell').unbind('mouseenter mouseleave')
         if(timetable.clone_day() == false){
-          timetable.apply_selection()
+          apply_selection(timetable)
         }else if(timetable.clone_day() == true){
-          timetable.apply_clones()
+          apply_clones(timetable)
         }
         timetable.draw_changes()
         timetable.end_selection_callback()
@@ -253,8 +263,8 @@ function Timetable(pms){
     })
   }
 
-  
-  this.selection_borders = function(){
+
+/*  this.selection_borders = function(){
     var day1 = this.selection_start.day
     var cell1 = this.selection_start.cell
     var day2 = this.selection_end.day
@@ -269,9 +279,10 @@ function Timetable(pms){
     }
     return {d1:day1,c1:cell1,d2:day2,c2:cell2}
   }
-  
+*/
+
   this.draw_selection = function(){
-    var bs = this.selection_borders()
+    var bs = selection_borders(this)
     var timetable = this
      this.days.each_with_index(function(day,i){
        day.timeline.each(function(cell){
@@ -283,7 +294,7 @@ function Timetable(pms){
   }
   
   this.draw_clones = function(){
-    var bs = this.selection_borders()
+    var bs = selection_borders(this)
     var timetable = this
     var etalone = timetable.clone_etalone.timeline
     this.days.each_with_index(function(day,i){
@@ -306,36 +317,93 @@ function Timetable(pms){
     })
   }
         
-  this.apply_selection = function(){
-    var bs = this.selection_borders()
-    this.days.each(function(day){
-      if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2){
-        day.timeline.each(function(cell){
-          if(cell.position >= bs.c1 && cell.position <= bs.c2){
-            cell.state = cell.next_state()
+  
+  
+
+  this.add_days = function(){
+    var dtln = dateline(this)
+    for(var year in dtln){
+      for(var month in dtln[year]){
+        for(var i=0;i<dtln[year][month].length;i++){
+          this.add_day({'year':year,'month':month,'day':dtln[year][month][i]})
+        }
+      }
+    }
+  }
+  
+  this.replace_day = function(day){
+    var days = this.days
+    for(var i=0;i<days.length;i++){
+      if(days[i].day == day.day && days[i].month == day.month && days[i].year == day.year){
+        day.sequence_number = i+1
+        days[i] = day
+      }
+    }
+  }
+  
+  this.update_days = function(){
+    var dtln = dateline(this)
+    var nds = []
+    var dtp
+    for(var year in dtln){
+      for(var month in dtln[year]){
+        for(var i=0;i<dtln[year][month].length;i++){
+          dtp = 0
+          for(day in this.days){
+            if(this.days[day].year == year && this.days[day].month == month && this.days[day].day == dtln[year][month][i]) {
+              dtp = this.days[day]
+              dtp.sequence_number = nds.length+1
+            }
           }
-        })
-        day.refresh_humanized_timeline()
+          if(dtp == 0){
+            dtp = new this.Day({
+              timetable: this,
+              sequence_number: nds.length+1,
+              'day': dtln[year][month][i],
+              'month': month,
+              'year': year,
+              'timeline': '000000000000000000000000000000000000000000000000'.split('')
+            })
+          }
+          nds.push(dtp)
+        }
       }
-    })
+    }
+    this.days = nds
+    //console.log(k)
   }
   
-  this.apply_clones = function(){
-    var bs = this.selection_borders()
-    var timetable = this
-    var etalone = timetable.clone_etalone.timeline
-    this.days.each_with_index(function(day,i){
-      if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2){
-         day.timeline.each(function(cell){
-          cell.state = etalone[cell.position].state
-         })
-      }
-     })
+  
+  
+  this.start = parse_date(this.start)
+  this.end = parse_date(this.end)
+  this.add_days()
+  if(this.draw_on_start)this.draw()
+//-----------------------------------------  
+  function selection_borders(el){
+    var day1 = el.selection_start.day
+    var cell1 = el.selection_start.cell
+    var day2 = el.selection_end.day
+    var cell2 = el.selection_end.cell
+    if(day2 < day1){
+      day1 = el.selection_end.day
+      day2 = el.selection_start.day
+    }
+    if(cell2 < cell1){
+      cell1 = el.selection_end.cell
+      cell2 = el.selection_start.cell
+    }
+    return {d1:day1,c1:cell1,d2:day2,c2:cell2}
   }
   
-  this.dateline = function(){
-    var start = this.start
-    var end = this.end
+  function parse_date(date){
+    date = date.split('.')
+    return({day:Number(date[0]),month:Number(date[1]),year:Number(date[2])})
+  }
+  
+  function dateline(el){
+    var start = el.start
+    var end = el.end
     var years = {}
     if(start.year <= end.year){
       for(var k=start.year;k<=end.year;k++){
@@ -390,66 +458,32 @@ function Timetable(pms){
     return years
   }
   
-  this.parse_date = function(date){
-    date = date.split('.')
-    return({day:Number(date[0]),month:Number(date[1]),year:Number(date[2])})
-  }
   
-  this.add_days = function(){
-    var dtln = this.dateline()
-    for(var year in dtln){
-      for(var month in dtln[year]){
-        for(var i=0;i<dtln[year][month].length;i++){
-          this.add_day({'year':year,'month':month,'day':dtln[year][month][i]})
-        }
-      }
-    }
-  }
-  
-  this.replace_day = function(day){
-    var days = this.days
-    for(var i=0;i<days.length;i++){
-      if(days[i].day == day.day && days[i].month == day.month && days[i].year == day.year){
-        day.sequence_number = i+1
-        days[i] = day
-      }
-    }
-  }
-  
-  this.update_days = function(){
-    var dtln = this.dateline()
-    var nds = []
-    var dtp
-    for(var year in dtln){
-      for(var month in dtln[year]){
-        for(var i=0;i<dtln[year][month].length;i++){
-          dtp = 0
-          for(day in this.days){
-            if(this.days[day].year == year && this.days[day].month == month && this.days[day].day == dtln[year][month][i]) {
-              dtp = this.days[day]
-              dtp.sequence_number = nds.length+1
-            }
+  function apply_selection(el){
+    var bs = selection_borders(el)
+    el.days.each(function(day){
+      if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2){
+        day.timeline.each(function(cell){
+          if(cell.position >= bs.c1 && cell.position <= bs.c2){
+            cell.state = cell.next_state()
           }
-          if(dtp == 0){
-            dtp = new this.Day({
-              timetable: this,
-              sequence_number: nds.length+1,
-              'day': dtln[year][month][i],
-              'month': month,
-              'year': year,
-              'timeline': '000000000000000000000000000000000000000000000000'.split('')
-            })
-          }
-          nds.push(dtp)
-        }
+        })
+        day.refresh_humanized_timeline()
       }
-    }
-    this.days = nds
-    //console.log(k)
+    })
   }
   
-  this.start = this.parse_date(this.start)
-  this.end = this.parse_date(this.end)
-  this.add_days()
-  if(this.draw_on_start)this.draw()
+  function apply_clones(el){
+    var bs = selection_borders(el)
+    //var timetable = this
+    var etalone = el.clone_etalone.timeline
+    el.days.each_with_index(function(day,i){
+      if(day.sequence_number >= bs.d1 && day.sequence_number <= bs.d2){
+         day.timeline.each(function(cell){
+          cell.state = etalone[cell.position].state
+         })
+      }
+     })
+  }
+  
 }
