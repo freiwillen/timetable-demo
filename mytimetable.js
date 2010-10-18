@@ -121,7 +121,8 @@ function Timetable(pms){
     
     this.day_name = function(){
       var d = new Date(this.year,this.month-1,this.day)
-      var day_names = ['Неділя','Понеділок','Вівторок','Середа','Четвер','П’ятниця','Субота']
+      //var day_names = ['Неділя','Понеділок','Вівторок','Середа','Четвер','П’ятниця','Субота']
+      var day_names = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
       return day_names[d.getDay()]
     }
     
