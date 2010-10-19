@@ -96,7 +96,7 @@ function Timetable(pms){
       return result
     }
     this.timetable = pms.timetable
-    this.sequence_number = pms.sequence_number
+    this.sequence_number = Number(pms.sequence_number)
     this.day = pms.day
     this.month = pms.month
     this.year = pms.year
@@ -138,7 +138,7 @@ function Timetable(pms){
         }
         r+= '<td></td></tr>'
       }
-      r += '<tr id="'+row_id+'"><td class="row_date">'+day.day+'.'+day.month+'.'+day.year+', '+this.day_name()+'</td>'
+      r += '<tr id="'+row_id+'"><td class="row_date">'+this.day+'.'+this.month+'.'+this.year+', '+this.day_name()+'</td>'
       r += this.timeline.map(function(cell){
         return cell.build_td()
       }).join('')
@@ -244,6 +244,7 @@ function Timetable(pms){
           var day = timetable.find_day($(this).attr('id').split('_')[1])
           timetable.selection_end = {'day':day.sequence_number,'cell':$(this).attr('id').split('_')[2]}
           if(timetable.clone_day() == false){
+            //if(selection_borders(timetable).c2 == 9){console.log(day)}
             timetable.draw_selection()
           }else if(timetable.clone_day() == true){
             timetable.draw_clones()
@@ -284,6 +285,8 @@ function Timetable(pms){
 
   this.draw_selection = function(){
     var bs = selection_borders(this)
+    
+      
     var timetable = this
      this.days.each_with_index(function(day,i){
        day.timeline.each(function(cell){
@@ -382,10 +385,10 @@ function Timetable(pms){
   if(this.draw_on_start)this.draw()
 //-----------------------------------------  
   function selection_borders(el){
-    var day1 = el.selection_start.day
-    var cell1 = el.selection_start.cell
-    var day2 = el.selection_end.day
-    var cell2 = el.selection_end.cell
+    var day1 = Number(el.selection_start.day)
+    var cell1 = Number(el.selection_start.cell)
+    var day2 = Number(el.selection_end.day)
+    var cell2 = Number(el.selection_end.cell)
     if(day2 < day1){
       day1 = el.selection_end.day
       day2 = el.selection_start.day
@@ -394,7 +397,10 @@ function Timetable(pms){
       cell1 = el.selection_end.cell
       cell2 = el.selection_start.cell
     }
-    return {d1:day1,c1:cell1,d2:day2,c2:cell2}
+    
+    var r = {d1:Number(day1),c1:Number(cell1),d2:Number(day2),c2:Number(cell2)}
+    //console.log(r)
+    return {d1:Number(day1),c1:Number(cell1),d2:Number(day2),c2:Number(cell2)}
   }
   
   function parse_date(date){
