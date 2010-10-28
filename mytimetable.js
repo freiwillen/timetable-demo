@@ -3,6 +3,7 @@ function daysInMonth(iMonth, iYear){
 } 
 
 function Timetable(pms){
+  this.mode = pms.mode || 'timetable'
   this.container = $(pms.container)
   this.days = []
   this.start = pms.start
@@ -11,9 +12,9 @@ function Timetable(pms){
   this.hover = 'off'
   this.selection_start = {day:'',cell:''}
   this.selection_end = {day:'',cell:''}
-  this.next_cell_state = function(){return $('.cells_state input:checked').attr('value')}//'auto'
+  this.next_cell_state = function(){return $('#'+this.container.attr('id')+' .cells_state input:checked').attr('value')}//'auto'
   this.draw_on_start = pms.draw_on_start && true
-  this.clone_day = function(){return $('#clone').attr('checked')}
+  this.clone_day = function(){return $('#'+this.container.attr('id')+'_clone').attr('checked')}
   this.show_humanized_timelines = pms.show_humanized_timelines || false
   this.clone_etalone = ''
   this.time_marks = {}
@@ -42,13 +43,13 @@ function Timetable(pms){
   
   this.add_controls = function(){
     r = '<tr>'
-    r += '<td><input type="checkbox" id="clone"> clone row </td>'
+    r += '<td><input type="checkbox" id="'+this.container.attr('id')+'_clone"> clone row </td>'
     r += '<td  class="cells_state" colspan="48">'
     var states = this.cell_states
     for(var key in states){
-      r += '<input type="radio" id="cell_state'+key+'" name="cells_state" value="'+key+'"><label for="cell_state'+key+'">'+states[key]+'</label>&nbsp;&nbsp;'  
+      r += '<input type="radio" id="'+this.container.attr('id')+'_cell_state'+key+'" name="'+this.container.attr('id')+'_cells_state" value="'+key+'"><label for="cell_state'+key+'">'+states[key]+'</label>&nbsp;&nbsp;'  
     }
-    r += '<input type="radio" id="cell_stateauto" name="cells_state" value="auto" checked="checked"><label for="cell_stateauto">auto</label>&nbsp;&nbsp;'
+    r += '<input type="radio" id="'+this.container.attr('id')+'_cell_stateauto" name="'+this.container.attr('id')+'_cells_state" value="auto" checked="checked"><label for="cell_stateauto">auto</label>&nbsp;&nbsp;'
     r += '</td>'
     r += '</tr>'
    this.container.append(r) 

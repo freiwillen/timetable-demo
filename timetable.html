@@ -20,13 +20,29 @@
         draw_on_start: true,
         cell_states: {0:'closed',1:'working',2:'dining'},
         show_humanized_timelines: true
-      })    
+      })
+      
+      schedule = new Timetable({
+        container: '#schedule',
+        start: 13+'.'+12+'.'+2010,
+        end: 19+'.'+12+'.'+2010,
+        //end_selection_callback:function(){update_timelines()},
+        time_marks:[8,12,18,22],
+        draw_on_start: true,
+        cell_states: {0:'closed',1:'working',2:'dining'},
+        show_humanized_timelines: true
+      })
+      
     })
     
     </script>
     <!--input type="checkbox" id="clone"-->
     <table id="timetable" style="border-collapse:collapse;">
     </table>
-
+    <br><br>
+<hr>
+<br><br>
+  <table id="schedule" style="border-collapse:collapse;">
+    </table>
   </body>
 </html>
