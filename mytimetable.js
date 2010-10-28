@@ -6,14 +6,20 @@ function Timetable(pms){
   this.mode = pms.mode || 'timetable'
   this.container = $(pms.container)
   this.days = []
-  this.start = pms.start
-  this.end = pms.end
+  if(pms.mode == 'schedule'){
+    this.start = 13+'.'+12+'.'+2010
+    this.end = 19+'.'+12+'.'+2010  
+  }else{
+    this.start = pms.start
+    this.end = pms.end  
+  }
+  
   this.cell_states = pms.cell_states || {0:'closed',1:'working'}
   this.hover = 'off'
   this.selection_start = {day:'',cell:''}
   this.selection_end = {day:'',cell:''}
   this.next_cell_state = function(){return $('#'+this.container.attr('id')+' .cells_state input:checked').attr('value')}//'auto'
-  this.draw_on_start = pms.draw_on_start && true
+  this.draw_on_start = pms.draw_on_start ? pms.draw_on_start || true : true
   this.clone_day = function(){return $('#'+this.container.attr('id')+'_clone').attr('checked')}
   this.show_humanized_timelines = pms.show_humanized_timelines || false
   this.clone_etalone = ''
@@ -127,6 +133,13 @@ function Timetable(pms){
       return day_names[d.getDay()]
     }
     
+    this.build_day_name_cell = function(){
+      var r = '<td class="row_date">'
+      if(this.timetable.mode == 'timetable')
+        r+=this.day+'.'+this.month+'.'+this.year+', '
+      return r+this.day_name()+'</td>'
+    }
+    
     this.build_row = function(){
       var row_id = this.timetable.container.attr('id')+'_'+this.day+'-'+this.month+'-'+this.year
       this.row_id = row_id
@@ -139,7 +152,7 @@ function Timetable(pms){
         }
         r+= '<td></td></tr>'
       }
-      r += '<tr id="'+row_id+'"><td class="row_date">'+this.day+'.'+this.month+'.'+this.year+', '+this.day_name()+'</td>'
+      r += '<tr id="'+row_id+'">' + this.build_day_name_cell()
       r += this.timeline.map(function(cell){
         return cell.build_td()
       }).join('')
