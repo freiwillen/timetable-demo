@@ -10,8 +10,8 @@ table{
   vertical-align:middle;
 }
 .dining{background-color:#fff8d8;}
-.working{background-color:#fbe360;}
-.closed{background-color:#ffffff;}
+.working, .going_on{background-color:#fbe360;}
+.closed, .not_going_on{background-color:#ffffff;}
 .worktime{
   padding-left:16px;
   width:192px;

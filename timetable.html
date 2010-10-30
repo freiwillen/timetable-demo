@@ -16,7 +16,7 @@
         start: 12+'.'+12+'.'+2010,
         end: 22+'.'+12+'.'+2010,
         time_marks:[8,12,18,22],
-        cell_states: {0:'closed',1:'working',2:'dining'},
+        cell_states: {1:'going_on',0:'not_going_on'},
         show_humanized_timelines: true
       })
       schedule = new Timetable({
@@ -24,10 +24,46 @@
         mode: 'schedule',
         time_marks:[8,12,18,22],
         cell_states: {0:'closed',1:'working',2:'dining'},
-        show_humanized_timelines: true
+        show_humanized_timelines: true,
+        end_selection_callback: compact_schedule
       })
     })
     
+    function compact_schedule(){
+      var days_names = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+      var table = this
+      var timelines = []
+      table.days.each(function(day){
+        var humanized = day.humanize_timeline()
+        var r = []
+        if(humanized['working'].any())
+          r.push('working: ' + humanized['working'])
+        if(humanized['dining'].any())
+          r.push('dining: ' + humanized['dining'])
+        timelines.push(r.join('; '))
+      })
+      
+      var t_result = {};
+      timelines.each_with_index(function(time,day){
+        if(!t_result[time])
+          t_result[time] = []
+        t_result[time].push(day)
+      })
+      
+      var result = []
+      
+      
+      
+      for(key in t_result){
+        if(key.length > 0)
+          result.push(
+          t_result[key].map(function(day){
+            return days_names[day]
+          }).join(', ')+' - '+key
+        )
+      }
+      $('#compact_schedule').html(result.join('<br>'))
+    }
     </script>
     <!--input type="checkbox" id="clone"-->
     <table id="timetable" style="border-collapse:collapse;">
@@ -36,6 +72,9 @@
 <hr>
 <br><br>
   <table id="schedule" style="border-collapse:collapse;">
-    </table>
+  </table>
+  <div id="compact_schedule">
+    
+  </div>
   </body>
 </html>
